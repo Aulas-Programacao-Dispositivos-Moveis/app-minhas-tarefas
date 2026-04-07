@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   FlatList,
@@ -8,7 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 type Tarefa = {
   id: string;
@@ -133,15 +133,17 @@ const styles = StyleSheet.create({
     backgroundColor: PRIMARY,
     paddingVertical: 20,
     paddingHorizontal: 24,
+    height: 100,
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 4,
     elevation: 6,
+    justifyContent: "center",
   },
   headerTitle: {
-    color: "#fff",
+    color: "#EFEFEF",
     fontSize: 22,
     fontWeight: "800",
     letterSpacing: 2,

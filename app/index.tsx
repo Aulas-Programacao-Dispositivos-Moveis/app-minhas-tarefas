@@ -1,7 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { router } from "expo-router";
-import { useEffect, useRef, useState } from "react";
 import {
   Animated,
   FlatList,
@@ -20,146 +18,51 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PRIMARY } from "../constants";
+import { useModalTarefa } from "../hooks/useModalTarefa";
+import { useTarefas } from "../hooks/useTarefas";
 import { Tarefa } from "../types/Tarefa";
 import { formatarData, formatarHora } from "../utils/formatters";
-import { carregarTarefas, salvarTarefas } from "../utils/storage";
-import { adicionarTarefa, toggleConcluida, toggleFlagged } from "../utils/tarefas";
 
 // ─── Componente Principal ─────────────────────────────────────────────────────
 
 export default function Index() {
-  const [tarefas, setTarefas] = useState<Tarefa[]>([]);
-  const [carregando, setCarregando] = useState(true);
+  const {
+    tarefas,
+    carregando,
+    handleToggleConcluida,
+    handleToggleFlagged,
+    handleAdicionarTarefa,
+    handleAbrirDetalhes,
+  } = useTarefas();
 
-  // Estado do modal
-  const [modalVisivel, setModalVisivel] = useState(false);
-  const [novoTitulo, setNovoTitulo] = useState("");
-  const [novaDescricao, setNovaDescricao] = useState("");
-  const [novoLembrete, setNovoLembrete] = useState<Date | null>(null);
+  const {
+    modalVisivel,
+    fabScale,
+    novoTitulo,
+    novaDescricao,
+    novoLembrete,
+    showDatePicker,
+    showTimePicker,
+    setNovoTitulo,
+    setNovaDescricao,
+    handleAbrirModal,
+    handleFecharModal,
+    resetModal,
+    handleToggleLembrete,
+    handleRemoverLembrete,
+    handleDateChange,
+    handleTimeChange,
+    handleAbrirDatePicker,
+    handleAbrirTimePicker,
+  } = useModalTarefa();
 
-  // Pickers independentes de data e hora
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
+  // ── Submeter nova tarefa ────────────────────────────────────────────────
 
-  const fabScale = useRef(new Animated.Value(1)).current;
-
-  // ── Carregar ao iniciar ──────────────────────────────────────────────────
-  useEffect(() => {
-    carregarTarefas().then((dados) => {
-      setTarefas(dados);
-      setCarregando(false);
-    });
-  }, []);
-
-  // ── Salvar ao alterar ────────────────────────────────────────────────────
-  useEffect(() => {
-    if (carregando) return;
-    salvarTarefas(tarefas);
-  }, [tarefas, carregando]);
-
-  // ── Handlers de lista ────────────────────────────────────────────────────
-
-  function handleToggleConcluida(id: string) {
-    setTarefas((prev) => toggleConcluida(prev, id));
-  }
-
-  function handleToggleFlagged(id: string) {
-    setTarefas((prev) => toggleFlagged(prev, id));
-  }
-
-  // ── Handlers do modal ────────────────────────────────────────────────────
-
-  function resetModal() {
-    setNovoTitulo("");
-    setNovaDescricao("");
-    setNovoLembrete(null);
-    setShowDatePicker(false);
-    setShowTimePicker(false);
-  }
-
-  function handleAbrirModal() {
-    Animated.sequence([
-      Animated.timing(fabScale, { toValue: 0.88, duration: 100, useNativeDriver: true }),
-      Animated.timing(fabScale, { toValue: 1, duration: 100, useNativeDriver: true }),
-    ]).start();
-    setModalVisivel(true);
-  }
-
-  function handleFecharModal() {
+  function handleSubmit() {
+    const ok = handleAdicionarTarefa(novoTitulo, novaDescricao, novoLembrete);
+    if (!ok) return;
     resetModal();
-    setModalVisivel(false);
-  }
-
-  function handleAdicionarTarefa() {
-    const novaLista = adicionarTarefa(
-      tarefas,
-      novoTitulo,
-      novaDescricao,
-      novoLembrete?.toISOString() ?? null
-    );
-    if (!novaLista) return;
-    setTarefas(novaLista);
-    resetModal();
-    setModalVisivel(false);
-  }
-
-  // ── Handlers do lembrete ─────────────────────────────────────────────────
-
-  function handleToggleLembrete() {
-    if (novoLembrete) {
-      setNovoLembrete(null);
-      setShowDatePicker(false);
-      setShowTimePicker(false);
-    } else {
-      // Valor inicial: hoje + 30 min arredondado
-      const d = new Date();
-      d.setMinutes(d.getMinutes() + 30, 0, 0);
-      setNovoLembrete(d);
-    }
-  }
-
-  function handleRemoverLembrete() {
-    setNovoLembrete(null);
-    setShowDatePicker(false);
-    setShowTimePicker(false);
-  }
-
-  /** Atualiza apenas a parte da DATA, preservando a hora já escolhida */
-  function handleDateChange(_event: any, selectedDate?: Date) {
-    if (Platform.OS === "android") setShowDatePicker(false);
-    if (!selectedDate || !novoLembrete) return;
-    const updated = new Date(novoLembrete);
-    updated.setFullYear(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate()
-    );
-    setNovoLembrete(updated);
-  }
-
-  /** Atualiza apenas a parte da HORA, preservando a data já escolhida */
-  function handleTimeChange(_event: any, selectedTime?: Date) {
-    if (Platform.OS === "android") setShowTimePicker(false);
-    if (!selectedTime || !novoLembrete) return;
-    const updated = new Date(novoLembrete);
-    updated.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
-    setNovoLembrete(updated);
-  }
-
-  // ── Navegação para detalhes ──────────────────────────────────────────────
-
-  function handleAbrirDetalhes(tarefa: Tarefa) {
-    router.push({
-      pathname: "/detalhes",
-      params: {
-        id: tarefa.id,
-        titulo: tarefa.titulo,
-        descricao: tarefa.descricao ?? "",
-        flagged: String(tarefa.flagged),
-        concluida: String(tarefa.concluida),
-        lembrete: tarefa.lembrete ?? "",
-      },
-    });
+    handleFecharModal();
   }
 
   // ── Render de item ───────────────────────────────────────────────────────
@@ -226,7 +129,7 @@ export default function Index() {
           </View>
         ) : (
           <FlatList
-            data={[...tarefas].sort((a, b) => Number(a.concluida) - Number(b.concluida))}
+            data={tarefas}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
@@ -362,10 +265,7 @@ export default function Index() {
                       styles.pickerBtn,
                       showDatePicker && styles.pickerBtnOpen,
                     ]}
-                    onPress={() => {
-                      setShowTimePicker(false);
-                      setShowDatePicker((v) => !v);
-                    }}
+                    onPress={handleAbrirDatePicker}
                     activeOpacity={0.75}
                   >
                     <Ionicons name="calendar-outline" size={16} color={PRIMARY} />
@@ -380,10 +280,7 @@ export default function Index() {
                       styles.pickerBtn,
                       showTimePicker && styles.pickerBtnOpen,
                     ]}
-                    onPress={() => {
-                      setShowDatePicker(false);
-                      setShowTimePicker((v) => !v);
-                    }}
+                    onPress={handleAbrirTimePicker}
                     activeOpacity={0.75}
                   >
                     <Ionicons name="time-outline" size={16} color={PRIMARY} />
@@ -427,7 +324,7 @@ export default function Index() {
                   styles.btnAdicionar,
                   !novoTitulo.trim() && styles.btnAdicionarDisabled,
                 ]}
-                onPress={handleAdicionarTarefa}
+                onPress={handleSubmit}
                 disabled={!novoTitulo.trim()}
               >
                 <Text style={styles.btnAdicionarText}>Adicionar</Text>

@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 20,
     paddingHorizontal: 16,
-    height: 100,
+    height: 80,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
   },
   title: {
     color: "#EFEFEF",
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "800",
     letterSpacing: 2,
   },

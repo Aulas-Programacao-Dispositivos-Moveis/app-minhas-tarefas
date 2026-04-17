@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { Header } from "../components/Header";
 import { PRIMARY } from "../constants";
 import { formatarData, formatarHora } from "../utils/formatters";
 import { carregarTarefas, salvarTarefas } from "../utils/storage";
@@ -51,19 +52,7 @@ export default function Detalhes() {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => router.back()}
-          style={styles.backBtn}
-          accessibilityLabel="Voltar"
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>MINHAS TAREFAS</Text>
-        {/* Espaço vazio para centralizar o título */}
-        <View style={styles.headerSpacer} />
-      </View>
+      <Header onVoltar={() => router.back()} />
 
       {/* Conteúdo */}
       <View style={styles.content}>
@@ -120,37 +109,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: PRIMARY,
-  },
-
-  /* ── Header ── */
-  header: {
-    backgroundColor: PRIMARY,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: 20,
-    paddingHorizontal: 16,
-    height: 100,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 6,
-  },
-  backBtn: {
-    width: 40,
-    height: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTitle: {
-    color: "#EFEFEF",
-    fontSize: 22,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
-  headerSpacer: {
-    width: 40,
   },
 
   /* ── Conteúdo ── */

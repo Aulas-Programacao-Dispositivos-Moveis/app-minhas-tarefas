@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -145,11 +146,27 @@ export default function Index() {
     setNovoLembrete(updated);
   }
 
+  // ── Navegação para detalhes ──────────────────────────────────────────────
+
+  function handleAbrirDetalhes(tarefa: Tarefa) {
+    router.push({
+      pathname: "/detalhes",
+      params: {
+        id: tarefa.id,
+        titulo: tarefa.titulo,
+        descricao: tarefa.descricao ?? "",
+        flagged: String(tarefa.flagged),
+        concluida: String(tarefa.concluida),
+        lembrete: tarefa.lembrete ?? "",
+      },
+    });
+  }
+
   // ── Render de item ───────────────────────────────────────────────────────
 
   function renderItem({ item }: { item: Tarefa }) {
     return (
-      <View style={styles.card}>
+      <Pressable style={styles.card}>
         <Pressable
           onPress={() => handleToggleConcluida(item.id)}
           style={[styles.checkbox, item.concluida && styles.checkboxChecked]}
@@ -176,11 +193,15 @@ export default function Index() {
             />
           </TouchableOpacity>
 
-          <TouchableOpacity accessibilityLabel="Ver detalhes" style={styles.actionBtn}>
+          <TouchableOpacity
+            onPress={() => handleAbrirDetalhes(item)}
+            accessibilityLabel="Ver detalhes"
+            style={styles.actionBtn}
+          >
             <Ionicons name="information-circle-outline" size={24} color="#555" />
           </TouchableOpacity>
         </View>
-      </View>
+      </Pressable>
     );
   }
 
@@ -205,7 +226,7 @@ export default function Index() {
           </View>
         ) : (
           <FlatList
-            data={tarefas}
+            data={[...tarefas].sort((a, b) => Number(a.concluida) - Number(b.concluida))}
             keyExtractor={(item) => item.id}
             renderItem={renderItem}
             contentContainerStyle={styles.listContent}
